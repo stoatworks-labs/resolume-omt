@@ -23,6 +23,28 @@ experimental and not in a Frame Ferret release yet.
 The [user guide](docs/USER-GUIDE.md) covers both plugins in more detail, and what to check when a
 source won't connect.
 
+<!-- downloads:start -->
+
+## Download
+
+**[v0.1.0](https://github.com/stoatworks-labs/resolume-omt/releases/tag/v0.1.0)** — prebuilt for macOS. Pick your platform:
+
+<details>
+<summary><b>macOS</b> — Universal (Apple Silicon + Intel)</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| Universal (Apple Silicon + Intel) · .dmg disk image | [`resolume-omt-0.1.0-macos-universal.dmg`](https://github.com/stoatworks-labs/resolume-omt/releases/download/v0.1.0/resolume-omt-0.1.0-macos-universal.dmg) | 17 MB |
+| Universal (Apple Silicon + Intel) · .zip archive | [`resolume-omt-macos-universal.zip`](https://github.com/stoatworks-labs/resolume-omt/releases/latest/download/resolume-omt-macos-universal.zip) | 16 MB |
+
+</details>
+
+All builds, checksums and release notes: [github.com/stoatworks-labs/resolume-omt/releases](https://github.com/stoatworks-labs/resolume-omt/releases).
+
+macOS builds are signed and notarised by Apple, so they open normally — no Gatekeeper warning and no quarantine step.
+
+<!-- downloads:end -->
+
 ## Using them
 
 Copy both bundles into `~/Documents/Resolume Arena/Extra Effects` (or Avenue's) and
