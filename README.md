@@ -1,5 +1,10 @@
 # Resolume OMT
 
+> **AI-assisted project.** This codebase was created with [Claude](https://claude.com/claude-code)
+> (Anthropic), directed and reviewed by a human author. Both plugins have run in Resolume Arena
+> 7.29 on macOS, checked end to end over real OMT by a receiver that reads a test card's frame
+> counter. Windows is not built yet.
+
 Two FFGL plugins that put [Open Media Transport](https://github.com/openmediatransport)
 (OMT) into Resolume Arena and Avenue:
 
