@@ -7,6 +7,8 @@
 
 #include <FFGLSDK.h>
 
+#include "StoatworksAboutParams.h"
+
 #include "Receiver.h"
 
 /**
@@ -42,7 +44,9 @@ public:
 		P_NO_SIGNAL,
 		P_KEEP_ALPHA,
 		P_STATUS,
-		P_COUNT
+		// The fleet's About block, last: a text line and its buttons.
+		P_ABOUT_FIRST,
+		P_COUNT = P_ABOUT_FIRST + stoatworks::about::kParamCount
 	};
 	enum Fit
 	{

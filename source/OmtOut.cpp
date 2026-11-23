@@ -102,6 +102,17 @@ OmtOut::OmtOut()
 		SetParamElementInfo( P_RATE, static_cast< unsigned int >( i + 1 ), kRateNames[ i ], static_cast< float >( i + 1 ) );
 
 	SetParamInfo( P_STATUS, "Status", FF_TYPE_TEXT, "Not sending yet" );
+
+	// The About block, last. Inline rather than through a helper: SetParamInfo
+	// is protected on CFFGLPlugin, so nothing outside the class can call it.
+	SetParamInfo( P_ABOUT_FIRST, "About", FF_TYPE_TEXT, stoatworks::about::defaultText() );
+	{
+		FFUInt32 aboutId = P_ABOUT_FIRST + 1;
+		for( const auto& b : stoatworks::about::buttons() )
+			SetParamInfo( aboutId++, b.label, FF_TYPE_EVENT, false );
+	}
+	for( FFUInt32 i = P_ABOUT_FIRST; i < P_COUNT; ++i )
+		SetParamGroup( i, "About" );
 	// Nothing starts here: Arena constructs every plugin at its startup scan.
 	// The sender starts with the first frame it is given.
 }
@@ -441,6 +452,11 @@ void OmtOut::flushForTest()
 
 FFResult OmtOut::SetFloatParameter( unsigned int index, float value )
 {
+	// The About block: the text line stores nothing and a button opens the
+	// browser on its press.
+	if( index >= P_ABOUT_FIRST && index < P_COUNT )
+		return stoatworks::about::handleParam( index - P_ABOUT_FIRST, value ) ? FF_SUCCESS : FF_FAIL;
+
 	switch( index )
 	{
 	case P_SEND: sendOn = value > 0.5f; return FF_SUCCESS;
@@ -465,6 +481,12 @@ float OmtOut::GetFloatParameter( unsigned int index )
 
 FFResult OmtOut::SetTextParameter( unsigned int index, const char* value )
 {
+	// Load-bearing: a host pushes every declared default back through the
+	// setters and deletes the instance if one fails, so the About line must
+	// accept its own default.
+	if( index == P_ABOUT_FIRST )
+		return FF_SUCCESS;
+
 	switch( index )
 	{
 	case P_NAME:
@@ -484,6 +506,12 @@ FFResult OmtOut::SetTextParameter( unsigned int index, const char* value )
 
 char* OmtOut::GetTextParameter( unsigned int index )
 {
+	if( index == P_ABOUT_FIRST )
+	{
+		static const std::string line = stoatworks::about::textParam( 0 );
+		return const_cast< char* >( line.c_str() );
+	}
+
 	switch( index )
 	{
 	case P_NAME: nameReturn = name; return const_cast< char* >( nameReturn.c_str() );

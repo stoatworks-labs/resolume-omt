@@ -393,6 +393,52 @@ void checkNames()
 	check( in, OmtIn::P_COUNT, "In" );
 	check( out, OmtOut::P_COUNT, "Out" );
 	report( ok, "names.unique", detail );
+
+	// The About block, and every declared default pushed back through the
+	// setters the way instantiateGL does it. A host deletes the instance the
+	// moment one of those returns FF_FAIL, which no other check here would
+	// notice: they all set parameters by hand.
+	ok = true;
+	detail.clear();
+	auto about = [ & ]( CFFGLPlugin& plugin, unsigned int first, unsigned int count, const char* who ) {
+		if( plugin.GetNumParams() != count )
+		{
+			ok = false;
+			detail += std::string( who ) + " declares " + std::to_string( plugin.GetNumParams() ) + " of " + std::to_string( count ) + "; ";
+		}
+		for( unsigned int i = 0; i < plugin.GetNumParams(); ++i )
+		{
+			const unsigned int type = plugin.GetParamType( i );
+			const FFMixed value = plugin.GetParamDefault( i );
+			const FFResult r = ( type == FF_TYPE_TEXT || type == FF_TYPE_FILE )
+			                       ? plugin.SetTextParameter( i, static_cast< const char* >( value.PointerValue ) )
+			                       : plugin.SetFloatParameter( i, *reinterpret_cast< const float* >( &value.UIntValue ) );
+			if( r != FF_SUCCESS )
+			{
+				ok = false;
+				detail += std::string( who ) + " refuses its default at " + std::to_string( i ) + "; ";
+			}
+		}
+		const char* raw = plugin.GetParamName( first );
+		const std::string name = raw ? std::string( raw, strnlen( raw, 16 ) ) : "";
+		const char* text = plugin.GetTextParameter( first );
+		const std::string line = text ? text : "";
+		const std::string want = std::string( "Resolume OMT v" ) + RESOLUME_OMT_VERSION;
+		if( name != "About" || plugin.GetParamType( first ) != FF_TYPE_TEXT || line.rfind( want, 0 ) != 0 )
+		{
+			ok = false;
+			detail += std::string( who ) + " About line \"" + line + "\"; ";
+		}
+		unsigned int buttons = 0;
+		for( unsigned int i = first + 1; i < count; ++i )
+			buttons += plugin.GetParamType( i ) == FF_TYPE_EVENT ? 1 : 0;
+		if( buttons != stoatworks::about::kButtonCount )
+			ok = false;
+		detail += std::string( who ) + " " + std::to_string( buttons ) + " buttons; ";
+	};
+	about( in, OmtIn::P_ABOUT_FIRST, OmtIn::P_COUNT, "In" );
+	about( out, OmtOut::P_ABOUT_FIRST, OmtOut::P_COUNT, "Out" );
+	report( ok, "names.about", detail + "\"" + stoatworks::about::defaultText() + "\"" );
 }
 
 /// OMT Out -> libomt's receiver: geometry, colour, alpha, frame order.

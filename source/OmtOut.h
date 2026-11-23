@@ -6,6 +6,8 @@
 
 #include <FFGLSDK.h>
 
+#include "StoatworksAboutParams.h"
+
 #include "Sender.h"
 
 /**
@@ -41,7 +43,9 @@ public:
 		P_ALPHA,
 		P_RATE,
 		P_STATUS,
-		P_COUNT
+		// The fleet's About block, last: a text line and its buttons.
+		P_ABOUT_FIRST,
+		P_COUNT = P_ABOUT_FIRST + stoatworks::about::kParamCount
 	};
 
 	// For the harness.

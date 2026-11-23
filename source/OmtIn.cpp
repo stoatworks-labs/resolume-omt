@@ -109,6 +109,17 @@ OmtIn::OmtIn()
 	SetParamInfo( P_KEEP_ALPHA, "Keep Alpha", FF_TYPE_BOOLEAN, true );
 	SetParamInfo( P_STATUS, "Status", FF_TYPE_TEXT, "Pick a source" );
 
+	// The About block, last. Inline rather than through a helper: SetParamInfo
+	// is protected on CFFGLPlugin, so nothing outside the class can call it.
+	SetParamInfo( P_ABOUT_FIRST, "About", FF_TYPE_TEXT, stoatworks::about::defaultText() );
+	{
+		FFUInt32 aboutId = P_ABOUT_FIRST + 1;
+		for( const auto& b : stoatworks::about::buttons() )
+			SetParamInfo( aboutId++, b.label, FF_TYPE_EVENT, false );
+	}
+	for( FFUInt32 i = P_ABOUT_FIRST; i < P_COUNT; ++i )
+		SetParamGroup( i, "About" );
+
 	menuLabels.assign( kMenuElements, "-" );
 	menuKeys.resize( kMenuElements );
 	menuLabels[ 0 ] = "None";
@@ -362,6 +373,11 @@ FFResult OmtIn::ProcessOpenGL( ProcessOpenGLStruct* )
 
 FFResult OmtIn::SetFloatParameter( unsigned int index, float value )
 {
+	// The About block: the text line stores nothing and a button opens the
+	// browser on its press.
+	if( index >= P_ABOUT_FIRST && index < P_COUNT )
+		return stoatworks::about::handleParam( index - P_ABOUT_FIRST, value ) ? FF_SUCCESS : FF_FAIL;
+
 	switch( index )
 	{
 	case P_SOURCE:
@@ -423,6 +439,12 @@ float OmtIn::GetFloatParameter( unsigned int index )
 
 FFResult OmtIn::SetTextParameter( unsigned int index, const char* value )
 {
+	// Load-bearing: a host pushes every declared default back through the
+	// setters and deletes the instance if one fails, so the About line must
+	// accept its own default.
+	if( index == P_ABOUT_FIRST )
+		return FF_SUCCESS;
+
 	switch( index )
 	{
 	case P_ADDRESS: setAddress( value ? value : "", true ); return FF_SUCCESS;
@@ -436,6 +458,12 @@ FFResult OmtIn::SetTextParameter( unsigned int index, const char* value )
 
 char* OmtIn::GetTextParameter( unsigned int index )
 {
+	if( index == P_ABOUT_FIRST )
+	{
+		static const std::string line = stoatworks::about::textParam( 0 );
+		return const_cast< char* >( line.c_str() );
+	}
+
 	switch( index )
 	{
 	case P_ADDRESS: addressReturn = address; return const_cast< char* >( addressReturn.c_str() );

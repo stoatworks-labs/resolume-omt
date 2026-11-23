@@ -17,12 +17,16 @@ and Syphon built in but not OMT, and its Advanced Output device list is compiled
 app, so no plugin can add OMT there. To send Advanced Output over OMT, give a screen a
 [Frame Ferret](https://github.com/stoatworks-labs/frame-ferret) virtual display as its
 device (Arena lists it as an ordinary display, "Display 2" and so on) and route that to a
-Frame Ferret OMT sender, or put OMT Out on the composition.
+Frame Ferret OMT sender, or put OMT Out on the composition. Frame Ferret's virtual display is
+experimental and not in a Frame Ferret release yet.
+
+The [user guide](docs/USER-GUIDE.md) covers both plugins in more detail, and what to check when a
+source won't connect.
 
 ## Using them
 
 Copy both bundles into `~/Documents/Resolume Arena/Extra Effects` (or Avenue's) and
-restart Resolume.
+restart Resolume. The macOS builds are Developer ID-signed and notarised.
 
 ### SW OMT In
 
@@ -87,9 +91,20 @@ checks them against each other and a test card over real OMT:
 The probe reads the test card's frame counter, so it reports dropped, repeated and
 out-of-order frames as well as colour and orientation.
 
+### Releasing
+
+`scripts/release.sh` builds, checks and packages a release on this Mac; AGENTS.md has the whole
+recipe, including how the bundled runtime gets signed.
+
 ## Status
 
-macOS only so far, tested in Resolume Arena 7.29. Not yet: Windows, tally, audio.
+Released at v0.1.0, macOS only. Both plugins have run in Resolume Arena 7.29 on macOS, and
+`omttest`'s 43 checks pass. Not tried in Avenue yet. Windows isn't built yet, and there's no
+tally or audio.
+
+<!-- attributions:start -->
+This project is built on other people's work — see [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
+<!-- attributions:end -->
 
 ## Licence
 
