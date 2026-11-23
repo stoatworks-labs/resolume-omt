@@ -9,9 +9,10 @@ Two FFGL plugins that put [Open Media Transport](https://github.com/openmediatra
 
 OMT is the open, MIT-licensed video-over-IP protocol from the vMix team. Resolume has NDI
 and Syphon built in but not OMT, and its Advanced Output device list is compiled into the
-app, so no plugin can add OMT there. To send an Advanced Output slice over OMT, point the
-slice at a virtual display and capture that (Frame Ferret does this), or put OMT Out on the
-composition.
+app, so no plugin can add OMT there. To send Advanced Output over OMT, give a screen a
+[Frame Ferret](https://github.com/stoatworks-labs/frame-ferret) virtual display as its
+device (Arena lists it as an ordinary display, "Display 2" and so on) and route that to a
+Frame Ferret OMT sender, or put OMT Out on the composition.
 
 ## Using them
 
@@ -33,7 +34,7 @@ restart Resolume.
 
 | Parameter | What it does |
 |---|---|
-| Name | The source name receivers see after the host name, `HOST (Name)`. Two OMT Outs with the same name become "Name" and "Name 2". |
+| Name | The source name receivers see after the host name, `HOST (Name)`. Two OMT Outs with the same name become "Name" and "Name 2"; when the first goes, the second takes the name back, so reopening a composition keeps its OMT name. |
 | Send | Off takes the source off the network. |
 | Quality | Receiver decides, Low, Medium or High (VMX encoder quality). |
 | Send Alpha | Send the alpha channel, un-premultiplied. |

@@ -45,6 +45,12 @@ std::string claimSenderName( const std::string& wanted )
 	return candidate;
 }
 
+bool senderNameFree( const std::string& wanted )
+{
+	std::lock_guard< std::mutex > lock( namesMutex() );
+	return names().count( wanted ) == 0;
+}
+
 void releaseSenderName( const std::string& claimed )
 {
 	if( claimed.empty() )
@@ -135,6 +141,7 @@ void Sender::run()
 
 	using clock = std::chrono::steady_clock;
 	auto windowStart = clock::now();
+	auto lastReclaimCheck = clock::now();
 	double windowEncodeMs = 0.0;
 	int windowFrames = 0;
 
@@ -162,7 +169,19 @@ void Sender::run()
 			}
 		}
 
-		if( serialNow != appliedSerial )
+		// A sender that had to settle for "Name 2" takes its own name back as
+		// soon as it is free. Arena builds a reloaded composition's effects
+		// before it destroys the old ones, so without this a composition
+		// reopened in place sends as "Name 2" from then on, and every receiver
+		// pointed at "Name" loses it.
+		bool reclaim = false;
+		if( sender && claimed != name && clock::now() - lastReclaimCheck >= std::chrono::milliseconds( 500 ) )
+		{
+			lastReclaimCheck = clock::now();
+			reclaim = senderNameFree( name );
+		}
+
+		if( serialNow != appliedSerial || reclaim )
 		{
 			if( sender )
 			{

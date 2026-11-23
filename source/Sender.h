@@ -19,7 +19,8 @@
     The name is what receivers see after the host name, "HOST (Name)". Two
     senders in one process with the same name would be indistinguishable to
     a receiver, so the second becomes "Name 2", and so on; status() reports
-    the name actually in use.
+    the name actually in use. A sender on "Name 2" moves back to "Name" once
+    the first has gone.
 */
 namespace somt
 {
@@ -102,6 +103,7 @@ private:
 
 /// Process-wide registry of sender names, so two OMT Outs never collide.
 std::string claimSenderName( const std::string& wanted );
+bool senderNameFree( const std::string& wanted );
 void releaseSenderName( const std::string& claimed );
 
 } // namespace somt

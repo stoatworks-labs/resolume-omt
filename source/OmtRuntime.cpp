@@ -11,7 +11,11 @@
 #if defined( _WIN32 )
 	#include <windows.h>
 #else
+	#include <cerrno>
 	#include <dlfcn.h>
+	#include <fcntl.h>
+	#include <semaphore.h>
+	#include <unistd.h>
 	#if defined( __APPLE__ )
 		#include <mach-o/dyld.h>
 	#endif
@@ -60,6 +64,76 @@ std::string ownImageDirectory()
 	return parentDirectory( info.dli_fname );
 #endif
 }
+
+/**
+    Serialises loading across every image in the process.
+
+    Each plugin bundle is its own image with its own copy of this file, so the
+    Runtime's mutex only orders threads within one bundle. When Arena opens a
+    composition holding both an OMT In and an OMT Out, the two bundles start
+    loading in the same instant; each scanned for an already-loaded libomt
+    before the other's dlopen had finished, found none, and loaded its own copy
+    (seen in Arena 7.29: two "loaded from" lines a millisecond apart). Two
+    runtimes work, but it is two .NET runtimes and two discovery stacks.
+
+    A named semaphore, keyed by the process ID, is the lock every image can
+    reach. It is unlinked by whoever releases it: a loader that arrives after
+    that makes a fresh one, which is harmless because by then the first load
+    has finished and the dyld scan finds it.
+*/
+class ProcessWideLock
+{
+public:
+	ProcessWideLock()
+	{
+#if defined( _WIN32 )
+		const std::string name = "Local\\resolume-omt-runtime-" + std::to_string( GetCurrentProcessId() );
+		mutex = CreateMutexA( nullptr, FALSE, name.c_str() );
+		if( mutex )
+			WaitForSingleObject( mutex, 60000 );
+#else
+		name = "/somt." + std::to_string( static_cast< long >( getpid() ) );
+		semaphore = sem_open( name.c_str(), O_CREAT, 0600, 1 );
+		if( semaphore == SEM_FAILED )
+		{
+			semaphore = nullptr;
+			return;// no lock: the worst case is the old race, not a failure
+		}
+		while( sem_wait( semaphore ) != 0 && errno == EINTR )
+		{
+		}
+#endif
+	}
+
+	~ProcessWideLock()
+	{
+#if defined( _WIN32 )
+		if( mutex )
+		{
+			ReleaseMutex( mutex );
+			CloseHandle( mutex );
+		}
+#else
+		if( semaphore )
+		{
+			sem_post( semaphore );
+			sem_unlink( name.c_str() );
+			sem_close( semaphore );
+		}
+#endif
+	}
+
+	ProcessWideLock( const ProcessWideLock& ) = delete;
+	ProcessWideLock& operator=( const ProcessWideLock& ) = delete;
+
+private:
+#if defined( _WIN32 )
+	HANDLE mutex = nullptr;
+#else
+	std::string name;
+	sem_t* semaphore = nullptr;
+#endif
+};
 
 class Runtime
 {
@@ -195,6 +269,7 @@ private:
 
 	void load()
 	{
+		ProcessWideLock across;// held until the symbols are resolved
 		handle = findAlreadyLoaded();
 		shared = handle != nullptr;
 

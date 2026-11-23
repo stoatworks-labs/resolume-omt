@@ -703,16 +703,32 @@ void checkUniqueNames()
 	host.inH = h;
 	glGenTextures( 1, &host.input );
 	uploadTexture( host.input, premultiply( card( w, h, 0, false ) ), w, h );
-	OmtOut a, b;
-	initPlugin( a, w, h );
+	auto a = std::make_unique< OmtOut >();
+	OmtOut b;
+	initPlugin( *a, w, h );
 	initPlugin( b, w, h );
 	const std::string name = prefix() + "-same";
-	a.SetTextParameter( OmtOut::P_NAME, name.c_str() );
+	a->SetTextParameter( OmtOut::P_NAME, name.c_str() );
 	b.SetTextParameter( OmtOut::P_NAME, name.c_str() );
-	const std::string addrA = waitForAddress( a, host, 5000 );
+	const std::string addrA = waitForAddress( *a, host, 5000 );
 	const std::string addrB = waitForAddress( b, host, 5000 );
 	report( !addrA.empty() && !addrB.empty() && addrA != addrB, "out.unique-names", "\"" + addrA + "\" and \"" + addrB + "\"" );
-	a.DeInitGL();
+
+	// What Arena does on reopening a composition: the new OMT Out exists
+	// before the old one goes. The survivor must take the name back.
+	a->DeInitGL();
+	a.reset();
+	std::string nameB;
+	const auto until = clock_::now() + std::chrono::milliseconds( 4000 );
+	while( clock_::now() < until )
+	{
+		host.processEffect( b );
+		nameB = b.senderStatus().name;
+		if( nameB == name && b.senderStatus().state == somt::SenderStatus::State::Sending )
+			break;
+		sleepMs( 16 );
+	}
+	report( nameB == name, "out.reclaim-name", "the second sender is \"" + nameB + "\" once the first has gone" );
 	b.DeInitGL();
 	glDeleteTextures( 1, &host.input );
 	freeTarget( host.out );
