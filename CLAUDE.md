@@ -1,0 +1,37 @@
+# resolume-omt
+
+OMT In (FFGL source, `OM01`) and OMT Out (FFGL effect, `OM02`) for Resolume. C++/GLSL,
+CMake, one `.bundle` per plugin, libomt loaded at run time with dlopen. macOS only so far.
+
+## Commands
+- Configure: `cmake -B build -DCMAKE_BUILD_TYPE=Release -DOMT_RUNTIME_DIR=$HOME/.local/lib/omt`
+- Build: `cmake --build build`; install: `cmake --install build` (Extra Effects).
+- Test: `./build/omttest` (all), `--only NAME`, `--list`, `--serve NAME SECONDS [alpha]`,
+  `--probe ADDRESS SECONDS`. `OMTTEST_TRACE=1` prints every received counter.
+- Check the artefact, never the log: `lipo -archs "build/SW OMT Out.bundle/Contents/MacOS/"*`
+
+## Layout
+- `source/OmtRuntime.*` — the dlopen loader. Reuses a libomt already in the process
+  (`RTLD_NOLOAD` scan), then env, then the bundle's Frameworks. Never unloads.
+- `source/Discovery.*` — one leaked poll thread per process; `sourceKey()` hashes a name
+  to an exact-in-float option value so saved compositions find sources by name.
+- `source/Receiver.*`, `source/Sender.*` — one worker thread each; the render thread
+  only copies.
+- `source/OmtIn.*`, `source/OmtOut.*` — the plugins. `SourcePlugin.cpp` and
+  `EffectPlugin.cpp` hold the `CFFGLPluginInfo` (one plugin per bundle).
+- `tools/omttest` — headless CGL host and the checks.
+
+## Rules
+- Nothing starts in a constructor: Arena constructs every plugin at its startup scan.
+  Discovery, receivers and senders start on the first ProcessOpenGL.
+- Param names are unique after lowercasing and dropping spaces; display names start "SW ".
+- Address is OMT In's source of truth; the Source menu follows it. Never reorder the
+  menu's fixed entries (None = 0, Typed address = 1) or change `sourceKey()`: saved
+  compositions store the hash.
+- Resolume textures are premultiplied. Out un-premultiplies when Send Alpha is on; In
+  premultiplies what arrives straight.
+- OMT rows are top-first, GL's bottom-first: both directions flip in the shader.
+- Out paces a fixed Frame Rate (`dueThisFrame`), timestamps on an ideal timeline that
+  never runs backwards. Auto sends every rendered frame.
+- Arena's REST API (127.0.0.1:8080) drives a real test: open `source:///video/SW%20OMT%20In`
+  into a clip, add `effect:///video/SW%20OMT%20Out` to the composition, then `--probe`.
