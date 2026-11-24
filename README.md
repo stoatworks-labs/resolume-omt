@@ -18,7 +18,8 @@ app, so no plugin can add OMT there. To send Advanced Output over OMT, give a sc
 [Frame Ferret](https://github.com/stoatworks-labs/frame-ferret) virtual display as its
 device (Arena lists it as an ordinary display, "Display 2" and so on) and route that to a
 Frame Ferret OMT sender, or put OMT Out on the composition. Frame Ferret's virtual display is
-experimental and not in a Frame Ferret release yet.
+experimental and macOS only, and arrived in
+[Frame Ferret v0.3.0](https://github.com/stoatworks-labs/frame-ferret/releases/tag/v0.3.0).
 
 The [user guide](docs/USER-GUIDE.md) covers both plugins in more detail, and what to check when a
 source won't connect.

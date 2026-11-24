@@ -61,8 +61,8 @@ Keep this honest. "Compiles" is not "works", and "Arena loaded it" is not "the p
 - **Resolume's textures are premultiplied; OMT's rows are top first.** Out un-premultiplies when
   Send Alpha is on and In premultiplies straight alpha; both directions flip rows in the shader.
 - **Arena's Advanced Output device list is compiled in.** No plugin can add OMT to it. The README
-  points at a Frame Ferret virtual display (experimental, on Frame Ferret's main, not yet in a
-  release) or OMT Out on the composition.
+  points at a Frame Ferret virtual display (experimental, released in Frame Ferret v0.3.0) or
+  OMT Out on the composition.
 
 ## Releasing
 

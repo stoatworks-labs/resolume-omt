@@ -124,8 +124,8 @@ Two ways round that:
 - **Put SW OMT Out on the composition.** That sends the whole composition.
 - **Give a screen a virtual display as its device.** [Frame Ferret](https://github.com/stoatworks-labs/frame-ferret)'s
   virtual display shows up in Arena as an ordinary display ("Display 2" and so on), and Frame
-  Ferret can route it to an OMT sender. That display is experimental and isn't in a Frame Ferret
-  release yet.
+  Ferret can route it to an OMT sender. That display is experimental and macOS only, and it's in
+  Frame Ferret from v0.3.0.
 
 ---
 
